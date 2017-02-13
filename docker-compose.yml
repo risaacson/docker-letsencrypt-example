@@ -1,0 +1,65 @@
+version: '2'
+services:
+  nginx-proxy:
+    image: jwilder/nginx-proxy
+    container_name: nginx-proxy
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - "/etc/nginx/conf.d"
+      - "/etc/nginx/vhost.d"
+      - "/usr/share/nginx/html"
+      - "${PATH_TO_DIR}/docker-pop/certs:/etc/nginx/certs:ro"
+      - "/var/run/docker.sock:/tmp/docker.sock:ro"
+  letsencrypt-nginx-proxy-companion:
+    image: jrcs/letsencrypt-nginx-proxy-companion
+    container_name: letsencrypt-nginx-proxy-companion
+    volumes_from:
+      - nginx-proxy
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "${PATH_TO_DIR}/docker-pop/certs:/etc/nginx/certs:rw"
+    depends_on:
+      - nginx-proxy
+
+#  whoami:
+#    image: jwilder/whoami
+#    container_name: whoami
+#    environment:
+#      - VIRTUAL_HOST=whoami.${YOUR_DOMAIN}
+#      - VIRTUAL_PORT=8000
+#      - LETSENCRYPT_HOST=whoami.${YOUR_DOMAIN}
+#      - LETSENCRYPT_EMAIL=${YOUR_E-MAIL}
+
+#  dynamic:
+#    image: node:latest
+#    container_name: dynamic
+#    volumes:
+#      - "${PATH_TO_DIR}/docker-pop/dynamic:/mnt"
+#    working_dir: /mnt
+#    command: [./entrypoint.sh]
+#    environment:
+#      - VIRTUAL_HOST=dynamic.${YOUR_DOMAIN}
+#      - VIRTUAL_PORT=8123
+#      - LETSENCRYPT_HOST=dynamic.${YOUR_DOMAIN}
+#      - LETSENCRYPT_EMAIL=${YOUR_E-MAIL}
+#    expose:
+#      - "8123"
+#    depends_on:
+#      - letsencrypt-nginx-proxy-companion
+
+#  static:
+#    image: nginx
+#    container_name: static
+#    volumes:
+#      - "${PATH_TO_DIR}/docker-pop/static:/usr/share/nginx/html:ro"
+#    environment:
+#      - VIRTUAL_HOST=static.${YOUR_DOMAIN}
+#      - VIRTUAL_PORT=80
+#      - LETSENCRYPT_HOST=static.${YOUR_DOMAIN}
+#      - LETSENCRYPT_EMAIL=${YOUR_E-MAIL}
+#    expose:
+#      - "80"
+#    depends_on:
+#      - letsencrypt-nginx-proxy-companion
